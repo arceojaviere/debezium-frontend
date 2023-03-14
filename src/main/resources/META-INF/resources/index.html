@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link href="https://getbootstrap.com/docs/5.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+        <style>
+            .payload-box{
+                display: inline-block;
+                width: 30cm;
+            }
+        </style>
+        <script>
+
+            function renderEvent(event){
+                data = JSON.parse(event.data);
+                console.log(data);
+
+                if(!data.heartbeat){
+
+                    document.getElementById("events").innerHTML += "<li class=\"list-group-item " + mapOperationClass(data.payload.op) + "\" ><h3>" + mapOperation(data.payload.op) + "</h3>" 
+                        + "<div class=\"card\"><div class=\"card-title\">Before:</div><span class=\"card-body overflow-auto payload-box\" >" + JSON.stringify(data.payload.before) + "</span></div><br /> " 
+                        + "<div class=\"card\"><div class=\"card-title\">After:</div><span class=\"card-body overflow-auto payload-box\" >" + JSON.stringify(data.payload.after) + "</span></div></li>";
+                }
+            }
+
+            function mapOperation(op){
+                operations = {"r": "READ/SNAPSHOT", "c": "INSERT", "u": "UPDATE", "d": "DELETE"};
+                return operations[op];
+            }
+
+            function mapOperationClass(op){
+                operations = {"r": "", "c": "list-group-item-primary", "u": "list-group-item-info", "d": "list-group-item-danger"};
+                return operations[op];
+            }
+
+
+            function startSSE(){
+                if(typeof(EventSource) !== "undefined") {
+                    var source = new EventSource("/dbEvents");
+                    source.onmessage = renderEvent;
+                } else {
+                    document.getElementById("events").innerHTML = "SSE not supported";
+                }
+            }
+        </script>
+    </head>
+    <body onload="startSSE()">
+
+    <h1>DB events</h1>
+    <div id="list-container" class="list-group">
+        <ul id="events"></ul>
+    </div>
+
+    
+
+</body>
+</html>
+
+
